@@ -1,3 +1,5 @@
+use std::option;
+
 #[derive(Debug)]
 pub enum CalculatorInput {
     Add,
@@ -7,11 +9,75 @@ pub enum CalculatorInput {
     Value(i32),
 }
 
+
+fn tpop(n2:&mut i32, n1:&mut i32, stack: &mut Vec<CalculatorInput>) -> Option<i32> {
+    if stack.len() < 2 {
+        return None;
+    }
+    match stack.pop()? {
+        CalculatorInput::Value(v) => {
+            *n2 = v;
+        }
+        _ => {
+            return None;
+        }
+    }
+    match stack.pop()? {
+        CalculatorInput::Value(v) => {
+            *n1 = v;
+        }
+        _ => {
+            return None;
+        }
+    }
+    Some(0)
+}
+
+fn calc(stack: &Vec<CalculatorInput>, input: &CalculatorInput) -> Option<i32> {
+    let mut n1;
+    let mut n2;
+    match input {
+        CalculatorInput::Add => {
+            tpop(n2, n1, &mut stack)?;
+            stack.push(CalculatorInput::Value(n1 + n2));
+        }
+        CalculatorInput::Subtract => {
+            tpop(n1, n2, &mut stack)?;
+            stack.push(CalculatorInput::Value(*n1 - *n2));
+        }
+        CalculatorInput::Multiply => {
+            tpop(n1, n2, &mut stack)?;
+            stack.push(CalculatorInput::Value(*n1 * *n2));
+        }
+        CalculatorInput::Divide => {
+            tpop(n1, n2, &mut stack)?;
+            stack.push(CalculatorInput::Value(*n1 / *n2));
+        }
+        CalculatorInput::Value(v) => {
+            stack.push(CalculatorInput::Value(*v));
+        }
+    }
+    None
+}
+
 pub fn evaluate(inputs: &[CalculatorInput]) -> Option<i32> {
-    unimplemented!(
-		"Given the inputs: {:?}, evaluate them as though they were a Reverse Polish notation expression",
-		inputs,
-	);
+    let mut stack: Vec<CalculatorInput> = vec![];
+    for input in inputs {
+        calc(&mut stack, input)?;
+    }
+    match stack.len() {
+        1 => {
+            match stack.pop() {
+                Some(CalculatorInput::Value(v)) => {
+                    Some(v)
+                }
+                _ => None
+            }
+        }
+        _ => {
+            return None;
+        }
+    }
 }
 
 #[cfg(test)]
